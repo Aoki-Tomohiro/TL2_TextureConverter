@@ -9,6 +9,7 @@ enum Argument
 {
 	kApplicationPath, //アプリケーションのパス
 	kFilePath,        //渡されたファイルのパス
+	kOutputDir,       //出力先のディレクトリ
 	NumArgument,
 };
 
@@ -34,7 +35,7 @@ int main(int argc, char* argv[])
 	//オプション配列（ダブルポインタ）
 	char** options = argv + NumArgument;
 	//テクスチャ変換
-	converter.ConvertTextureWICToDDS(argv[kFilePath], numOptions, options);
+	converter.ConvertTextureWICToDDS(argv[kFilePath], argv[kOutputDir], numOptions, options);
 
 	//COMライブラリの終了
 	CoUninitialize();

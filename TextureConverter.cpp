@@ -1,24 +1,28 @@
 #include "TextureConverter.h"
 #include <Windows.h>
+#include <filesystem>
 
 void TextureConverter::OutputUsage()
 {
 	printf("画像ファイルをWIC形式からDDS形式に変換します。\n");
 	printf("\n");
-	printf("TextureConverter[ドライブ:][パス][ファイル名]\n");
+	printf("TextureConverter[ドライブ:][パス][ファイル名] [ドライブ:][パス] [-ml level]\n");
 	printf("\n");
 	printf("[ドライブ:][パス][ファイル名]: 変換したいWIC形式の画像ファイルを指定します。\n");
 	printf("\n");
-	printf("[-mi level]: ミップレベルを指定します。0を使用すると1x1までのフルミップマップチェーンを生成します。\n");
+	printf("[ドライブ:][パス]: 出力先のディレクトリを指定します。\n");
+	printf("\n");
+	printf("[-ml level]: ミップレベルを指定します。０を使用すると１x１までのフルミップマップチェーンを生成します。\n");
+	printf("\n");
 }
 
-void TextureConverter::ConvertTextureWICToDDS(const std::string& filePath, int numOptions, char* options[])
+void TextureConverter::ConvertTextureWICToDDS(const std::string& filePath, const std::string& outputDir, int numOptions, char* options[])
 {
 	//テクスチャファイルを読み込む
 	LoadWICTextureFromFile(filePath);
 
 	//テクスチャ変換
-	SaveDDSTextureToFile(numOptions, options);
+	SaveDDSTextureToFile(outputDir, numOptions, options);
 }
 
 void TextureConverter::LoadWICTextureFromFile(const std::string& filePath)
@@ -82,7 +86,7 @@ void TextureConverter::SeparateFilePath(const std::wstring& filePath)
 	fileName_ = exceptExt;
 }
 
-void TextureConverter::SaveDDSTextureToFile(int numOptions, char* options[])
+void TextureConverter::SaveDDSTextureToFile(const std::string& outputDir, int numOptions, char* options[])
 {
 	//ミップレベルの初期値を設定
 	size_t mipLevel = 0;
@@ -122,11 +126,17 @@ void TextureConverter::SaveDDSTextureToFile(int numOptions, char* options[])
 	//読み込んだテクスチャをSRGBとして扱う
 	metaData_.format = DirectX::MakeSRGB(metaData_.format);
 
-	//出力ファイル名を設定する
-	std::wstring filePath = directoryPath_ + fileName_ + L".dds";
+	//出力パスを構築
+	std::filesystem::path outputPath = std::filesystem::path(outputDir) / (fileName_ + L".dds");
+
+	//ディレクトリが存在しない場合は作成
+	if (!std::filesystem::exists(outputPath.parent_path()))
+	{
+		std::filesystem::create_directories(outputPath.parent_path());
+	}
 
 	//DDSファイル書き出し
-	result = DirectX::SaveToDDSFile(scratchImage_.GetImages(), scratchImage_.GetImageCount(), metaData_, DirectX::DDS_FLAGS_NONE, filePath.c_str());
+	result = DirectX::SaveToDDSFile(scratchImage_.GetImages(), scratchImage_.GetImageCount(), metaData_, DirectX::DDS_FLAGS_NONE, outputPath.wstring().c_str());
 	assert(SUCCEEDED(result));
 }
 
