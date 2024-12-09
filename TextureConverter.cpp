@@ -10,19 +10,19 @@ void TextureConverter::OutputUsage()
 	printf("\n");
 	printf("[ドライブ:][パス][ファイル名]: 変換したいWIC形式の画像ファイルを指定します。\n");
 	printf("\n");
-	printf("[ドライブ:][パス]: 出力先のディレクトリを指定します。\n");
+	printf("[-o [ドライブ:][パス]]: 出力先のディレクトリを指定します。\n");
 	printf("\n");
 	printf("[-ml level]: ミップレベルを指定します。０を使用すると１x１までのフルミップマップチェーンを生成します。\n");
 	printf("\n");
 }
 
-void TextureConverter::ConvertTextureWICToDDS(const std::string& filePath, const std::string& outputDir, int numOptions, char* options[])
+void TextureConverter::ConvertTextureWICToDDS(const std::string& filePath, int numOptions, char* options[])
 {
 	//テクスチャファイルを読み込む
 	LoadWICTextureFromFile(filePath);
 
 	//テクスチャ変換
-	SaveDDSTextureToFile(outputDir, numOptions, options);
+	SaveDDSTextureToFile(numOptions, options);
 }
 
 void TextureConverter::LoadWICTextureFromFile(const std::string& filePath)
@@ -86,22 +86,27 @@ void TextureConverter::SeparateFilePath(const std::wstring& filePath)
 	fileName_ = exceptExt;
 }
 
-void TextureConverter::SaveDDSTextureToFile(const std::string& outputDir, int numOptions, char* options[])
+void TextureConverter::SaveDDSTextureToFile(int numOptions, char* options[])
 {
 	//ミップレベルの初期値を設定
 	size_t mipLevel = 0;
+	//出力先のディレクトリ
+	std::wstring outputDir = directoryPath_;
 
 	//ミップレベル指定オプションを検索
 	for (int i = 0; i < numOptions; i++)
 	{
-		//-mlオプションが見つからなければ次のオプションへ
-		if (std::string(options[i]) != "-ml") continue;
-
 		//-mlが見つかった場合は次の引数をミップレベルとして設定
-		mipLevel = std::stoi(options[i + 1]);
-
-		//ミップレベルが設定されたのでこれ以上検索しない
-		break;
+		if (std::string(options[i]) == "-ml")
+		{
+			mipLevel = std::stoi(options[i + 1]);
+		}
+		//-oが見つかった場合は次の引数を出力先ディレクトリとして設定
+		else if (std::string(options[i]) == "-o")
+		{
+			std::string dirString = options[i + 1];
+			outputDir = ConvertMultiByteStringToWideString(dirString);
+		}
 	}
 
 	//ミップマップ生成
@@ -125,6 +130,9 @@ void TextureConverter::SaveDDSTextureToFile(const std::string& outputDir, int nu
 
 	//読み込んだテクスチャをSRGBとして扱う
 	metaData_.format = DirectX::MakeSRGB(metaData_.format);
+
+	//'\0'を取り除く処理
+	outputDir.erase(std::remove(outputDir.begin(), outputDir.end(), L'\0'), outputDir.end());
 
 	//出力パスを構築
 	std::filesystem::path outputPath = std::filesystem::path(outputDir) / (fileName_ + L".dds");

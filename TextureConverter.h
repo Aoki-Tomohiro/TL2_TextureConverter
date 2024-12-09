@@ -17,10 +17,9 @@ public:
 	/// テクスチャをWICからDDSに変換する
 	/// </summary>
 	/// <param name="filePath">ファイルパス</param>
-	/// <param name="outputDir">出力するファイルのディレクトリ</param>
 	/// <param name="numOptions">オプションの数</param>
 	/// <param name="options">オプション配列</param>
-	void ConvertTextureWICToDDS(const std::string& filePath, const std::string& outputDir, int numOptions = 0, char* options[] = nullptr);
+	void ConvertTextureWICToDDS(const std::string& filePath, int numOptions = 0, char* options[] = nullptr);
 
 private:
 	/// <summary>
@@ -38,10 +37,9 @@ private:
 	/// <summary>
 	/// DDSテクスチャとしてファイル書き出し
 	/// </summary>
-	/// <param name="outputDir">出力するファイルのディレクトリ</param>
 	/// <param name="numOptions">オプションの数</param>
 	/// <param name="options">オプション配列</param>
-	void SaveDDSTextureToFile(const std::string& outputDir, int numOptions, char* options[]);
+	void SaveDDSTextureToFile(int numOptions, char* options[]);
 
 	/// <summary>
 	/// マルチバイト文字列をワイド文字列に変換
