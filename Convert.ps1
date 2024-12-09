@@ -4,7 +4,7 @@ param
     [string]$outputDir
 )
 
-$files = Get-Item *.jpg
+$files = Get-Item *.jpg, *.png
 foreach($f in $files)
 {
     $targetDir = if ($outputDir) { $outputDir } else { $f.DirectoryName }
